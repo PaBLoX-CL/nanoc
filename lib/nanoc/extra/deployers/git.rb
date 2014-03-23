@@ -48,8 +48,8 @@ module Nanoc::Extra::Deployers
           end
         end
 
-        if `git branch`.split("\n").any? { |b| b =~ /#{branch}/i }
         # If there is a branch with that name, switch to it, otherwise create a new one and switch to it
+        if `git branch`.split("\n").any? { |b| b =~ /^#{branch}$/i }
           `git checkout #{branch}`
         else
           `git checkout -b #{branch}`
