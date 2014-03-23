@@ -37,15 +37,15 @@ module Nanoc::Extra::Deployers
       end
 
       Dir.chdir(output_dir) do
-        unless File.exists?('.git')
-          `git init`
-          `git remote add origin #{remote}`
-        else
-          unless remote == `git config --get remote.origin.url`.chop
+        if File.exists?('.git')
           # Check if the remote repo has changed
+          if remote != `git config --get remote.origin.url`.chop
             `git remote rm origin`
             `git remote add origin #{remote}`
           end
+        else
+          `git init`
+          `git remote add origin #{remote}`
         end
 
         # If there is a branch with that name, switch to it, otherwise create a new one and switch to it
