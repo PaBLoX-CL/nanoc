@@ -25,12 +25,12 @@ module Nanoc::Extra::Deployers
 
       puts "Deploying via git to remote=\"#{remote}\" and branch=\"#{branch}\""
 
-      #check if remote is not a git url
+      # Check if remote is not a git url
       unless remote =~ /\.git$/
         remote = `git config --get remote.#{remote}.url`.chop
       end
 
-      #if the remote name doesn't exist in the main repo
+      # If the remote name doesn't exist in the main repo
       if remote == ''
         puts "Can't deploy! Please add a remote with the name '#{opts[:remote]}' to your repo."
         exit(1)
@@ -41,15 +41,15 @@ module Nanoc::Extra::Deployers
           `git init`
           `git remote add origin #{remote}`
         else
-          #check if the remote repo has changed
           unless remote == `git config --get remote.origin.url`.chop
+          # Check if the remote repo has changed
             `git remote rm origin`
             `git remote add origin #{remote}`
           end
         end
 
-        #if there is a branch with that name, switch to it, otherwise create a new one and switch to it
         if `git branch`.split("\n").any? { |b| b =~ /#{branch}/i }
+        # If there is a branch with that name, switch to it, otherwise create a new one and switch to it
           `git checkout #{branch}`
         else
           `git checkout -b #{branch}`
