@@ -32,7 +32,7 @@ module Nanoc::Extra::Deployers
 
       # If the remote name doesn't exist in the main repo
       if remote == ''
-        puts "Can't deploy! Please add a remote with the name '#{opts[:remote]}' to your repo."
+        STDERR.puts "Can't deploy! Please add a remote with the name '#{opts[:remote]}' to your repo."
         exit(1)
       end
 
