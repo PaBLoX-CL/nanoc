@@ -41,7 +41,6 @@ module Nanoc::Extra::Deployers
       # Get params
       remote = self.config[:remote] || 'origin'
       branch = self.config[:branch] || 'gh-pages'
-      output_dir = self.source_path
 
       puts "Deploying via git to remote=\"#{remote}\" and branch=\"#{branch}\""
 
@@ -56,7 +55,7 @@ module Nanoc::Extra::Deployers
         exit(1)
       end
 
-      Dir.chdir(output_dir) do
+      Dir.chdir(self.source_path) do
         if File.exists?('.git')
           # Check if the remote repo has changed
           if remote != `git config --get remote.origin.url`.chop
