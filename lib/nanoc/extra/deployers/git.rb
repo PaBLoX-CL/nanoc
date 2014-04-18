@@ -42,7 +42,7 @@ module Nanoc::Extra::Deployers
       remote = self.config[:remote] || 'origin'
       branch = self.config[:branch] || 'gh-pages'
 
-      puts "Deploying via git to remote=\"#{remote}\" and branch=\"#{branch}\""
+      puts "Deploying via git to remote='#{remote}' and branch='#{branch}'"
 
       # Check if remote is not a git url
       unless remote =~ /\.git$/
