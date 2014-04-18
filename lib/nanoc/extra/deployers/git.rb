@@ -38,18 +38,16 @@ module Nanoc::Extra::Deployers
     # @see Nanoc::Extra::Deployer#run
     # Code adapted from Middleman Deploy (https://github.com/tvaughan/middleman-deploy)
     def run
-      # Get params
       remote = self.config[:remote] || 'origin'
       branch = self.config[:branch] || 'gh-pages'
 
       puts "Deploying via git to remote='#{remote}' and branch='#{branch}'"
 
-      # Check if remote is not a git url
       unless remote =~ /\.git$/
         remote = IO.popen(['git', 'config', '--get', "remote.#{remote}.url"]) { |c| c.read }.chop
+      # If the remote is not a Git url already, get it from git config
       end
 
-      # If the remote name doesn't exist in the main repo
       if remote == ''
         STDERR.puts "Can't deploy! Please add a remote with the name '#{opts[:remote]}' to your repo."
         exit(1)
@@ -57,19 +55,19 @@ module Nanoc::Extra::Deployers
 
       Dir.chdir(self.source_path) do
         if File.exists?('.git')
-          # Check if the remote repo has changed
           if remote != `git config --get remote.origin.url`.chop
             `git remote rm origin`
             `git remote add origin #{remote}`
+          # Check if the remote url has changed
           end
         else
           `git init`
           `git remote add origin #{remote}`
         end
 
-        # If there is a branch with that name, switch to it, otherwise create a new one and switch to it
         if `git branch`.split("\n").any? { |b| b =~ /^#{branch}$/i }
           `git checkout #{branch}`
+        # If the branch exists then switch to it, otherwise create a new one and switch to it
         else
           `git checkout -b #{branch}`
         end
