@@ -43,38 +43,36 @@ module Nanoc::Extra::Deployers
 
       puts "Deploying via git to remote='#{remote}' and branch='#{branch}'"
 
-      unless remote =~ /\.git$/
-        remote = IO.popen(['git', 'config', '--get', "remote.#{remote}.url"]) { |c| c.read }.chop
       # If the remote is not a Git url already, get it from git config
+      unless remote.end_with?('.git')
+        remote = run_shell_cmd(%W( git config --get remote.#{remote}.url )).chop
       end
 
-      if remote == ''
-        STDERR.puts "Can't deploy! Please add a remote with the name '#{opts[:remote]}' to your repo."
-        exit(1)
-      end
+      raise "Please add a remote called '#{opts[:remote]}' to your repo." if remote == ''
 
       Dir.chdir(self.source_path) do
         if File.exists?('.git')
-          if remote != `git config --get remote.origin.url`.chop
-            `git remote rm origin`
-            `git remote add origin #{remote}`
           # Check if the remote url has changed
+          if remote != run_shell_cmd(%w( git config --get remote.origin.url )).chop
+            run_shell_cmd(%w( git remote rm origin ))
+            run_shell_cmd(%W( git remote add origin #{remote} ))
           end
         else
-          `git init`
-          `git remote add origin #{remote}`
+          run_shell_cmd(%w( git init ))
+          run_shell_cmd(%W( git remote add origin #{remote} ))
         end
 
-        if `git branch`.split("\n").any? { |b| b =~ /^#{branch}$/i }
-          `git checkout #{branch}`
         # If the branch exists then switch to it, otherwise create a new one and switch to it
+        if run_shell_cmd(%w( git branch )).split("\n").any? { |b| b =~ /^#{branch}$/i }
+          run_shell_cmd(%W( git checkout #{branch} ))
         else
-          `git checkout -b #{branch}`
+          run_shell_cmd(%W( git checkout -b #{branch} ))
         end
 
-        `git add -A`
-        `git commit --allow-empty -am 'Automated commit at #{Time.now.utc} by nanoc #{Nanoc::VERSION}'`
-        `git push -f origin #{branch}`
+        msg = "Automated commit at #{Time.now.utc} by nanoc #{Nanoc::VERSION}"
+        run_shell_cmd(%w( git add -A ))
+        run_shell_cmd(%W( git commit --allow-empty -am #{msg} ))
+        run_shell_cmd(%W( git push -f origin #{branch} ))
       end 
     end
 
