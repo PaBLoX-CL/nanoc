@@ -35,6 +35,16 @@ class Nanoc::Filters::ColorizeSyntaxTest < Nanoc::TestCase
     end
   end
 
+  def test_with_frozen_input
+    if_have 'nokogiri' do
+      input = '<pre title="moo"><code class="language-ruby"># comment</code></pre>'.freeze
+      input.freeze
+
+      filter = ::Nanoc::Filters::ColorizeSyntax.new
+      filter.setup_and_run(input, :default_colorizer => :dummy)
+    end
+  end
+
   def test_full_page
     if_have 'nokogiri' do
       # Create filter
@@ -121,7 +131,7 @@ EOS
   end
 
   def test_pygmentize
-    if_have 'nokogiri', 'systemu' do
+    if_have 'nokogiri' do
       skip_unless_have_command "pygmentize"
 
       # Create filter
@@ -154,7 +164,7 @@ EOS
   end
 
   def test_simon_highlight
-    if_have 'nokogiri', 'systemu' do
+    if_have 'nokogiri' do
       skip_unless_have_command "highlight"
 
       # Create filter
@@ -215,7 +225,7 @@ EOS
   def test_colorize_syntax_with_default_colorizer
     skip_unless_have_command "pygmentize"
 
-    if_have 'nokogiri', 'systemu' do
+    if_have 'nokogiri' do
       # Create filter
       filter = ::Nanoc::Filters::ColorizeSyntax.new
 
@@ -230,7 +240,7 @@ EOS
   end
 
   def test_colorize_syntax_with_missing_executables
-    if_have 'nokogiri', 'systemu' do
+    if_have 'nokogiri' do
       begin
         original_path = ENV['PATH']
         ENV['PATH'] = './blooblooblah'
@@ -272,7 +282,7 @@ puts 'hi!'
 </code></pre>
 after
 EOS
-      expected_output = <<EOS
+      expected_output = <<EOS.sub(/\s*\Z/m, '')
 before
 <pre><code>
 #!/usr/bin/env ruby
@@ -282,7 +292,7 @@ after
 EOS
 
       # Run filter
-      actual_output = filter.setup_and_run(input)
+      actual_output = filter.setup_and_run(input).sub(/\s*\Z/m, '')
       assert_equal(expected_output, actual_output)
     end
   end
@@ -302,7 +312,7 @@ puts 'hi!'
 </code></pre>
 after
 EOS
-      expected_output = <<EOS
+      expected_output = <<EOS.sub(/\s*\Z/m, '')
 before
 #{CODERAY_PRE}<pre><code class=\"language-ruby\"><span class=\"doctype\">#!/usr/bin/env ruby</span>
 puts <span class=\"string\"><span class=\"delimiter\">'</span><span class=\"content\">hi!</span><span class=\"delimiter\">'</span></span></code></pre>#{CODERAY_POST}
@@ -310,7 +320,7 @@ after
 EOS
 
       # Run filter
-      actual_output = filter.setup_and_run(input)
+      actual_output = filter.setup_and_run(input).sub(/\s*\Z/m, '')
       assert_equal(expected_output, actual_output)
     end
   end
@@ -362,7 +372,7 @@ before
 </code></pre>
 after
 EOS
-      expected_output = <<EOS
+      expected_output = <<EOS.sub(/\s*\Z/m, '')
 before
 #{CODERAY_PRE}<pre><code class="language-ruby">  <span class=\"keyword\">def</span> <span class=\"function\">foo</span>
   <span class=\"keyword\">end</span></code></pre>#{CODERAY_POST}
@@ -370,7 +380,61 @@ after
 EOS
 
       # Run filter
-      actual_output = filter.setup_and_run(input)
+      actual_output = filter.setup_and_run(input).sub(/\s*\Z/m, '')
+      assert_equal(expected_output, actual_output)
+    end
+  end
+
+  def test_rouge
+    if_have 'rouge', 'nokogiri' do
+      # Create filter
+      filter = ::Nanoc::Filters::ColorizeSyntax.new
+
+      # Get input and expected output
+      input = <<EOS
+before
+<pre><code class="language-ruby">
+  def foo
+  end
+</code></pre>
+after
+EOS
+      expected_output = <<EOS
+before
+<pre><code class=\"language-ruby\"><pre class=\"highlight\">  <span class=\"k\">def</span> <span class=\"nf\">foo</span>
+  <span class=\"k\">end</span></pre></code></pre>
+after
+EOS
+
+      # Run filter
+      actual_output = filter.setup_and_run(input, :default_colorizer => :rouge)
+      assert_equal(expected_output, actual_output)
+    end
+  end
+
+  def test_rouge_with_css_class
+    if_have 'rouge', 'nokogiri' do
+      # Create filter
+      filter = ::Nanoc::Filters::ColorizeSyntax.new
+
+      # Get input and expected output
+      input = <<EOS
+before
+<pre><code class="language-ruby">
+  def foo
+  end
+</code></pre>
+after
+EOS
+      expected_output = <<EOS
+before
+<pre><code class=\"language-ruby\"><pre class=\"my-class\">  <span class=\"k\">def</span> <span class=\"nf\">foo</span>
+  <span class=\"k\">end</span></pre></code></pre>
+after
+EOS
+
+      # Run filter
+      actual_output = filter.setup_and_run(input, :default_colorizer => :rouge, :rouge => { :css_class => 'my-class' })
       assert_equal(expected_output, actual_output)
     end
   end

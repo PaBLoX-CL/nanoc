@@ -233,21 +233,25 @@ module Nanoc::CLI::Commands
 
       def durations_per_filter
         @_durations_per_filter ||= begin
-          @times.keys.each_with_object({}) do |filter_name, result|
+          result = {}
+          @times.keys.each do |filter_name|
             durations = durations_for_filter(filter_name)
             if durations
               result[filter_name] = durations
             end
           end
+          result
         end
       end
 
       def durations_for_filter(filter_name)
-        @times[filter_name].each_with_object([]) do |sample, result|
+        result = []
+        @times[filter_name].each do |sample|
           if sample[:start] && sample[:stop]
             result << sample[:stop] - sample[:start]
           end
         end
+        result
       end
 
     end
@@ -332,7 +336,6 @@ module Nanoc::CLI::Commands
       # @option params [Array<Nanoc::ItemRep>] :reps The list of item representations in the site
       def initialize(params = {})
         @start_times = {}
-        @stop_times  = {}
 
         @reps = params.fetch(:reps)
       end
@@ -342,10 +345,8 @@ module Nanoc::CLI::Commands
         Nanoc::NotificationCenter.on(:compilation_started) do |rep|
           @start_times[rep.raw_path] = Time.now
         end
-        Nanoc::NotificationCenter.on(:compilation_ended) do |rep|
-          @stop_times[rep.raw_path] = Time.now
-        end
         Nanoc::NotificationCenter.on(:rep_written) do |rep, path, is_created, is_modified|
+          duration = path && @start_times[path] ? Time.now - @start_times[path] : nil
           action =
             case
             when is_created  then :create
@@ -358,7 +359,7 @@ module Nanoc::CLI::Commands
             when is_modified then :high
             else :low
             end
-          log(level, action, path, duration_for(rep))
+          log(level, action, path, duration)
         end
       end
 
@@ -367,22 +368,12 @@ module Nanoc::CLI::Commands
         super
         @reps.select { |r| !r.compiled? }.each do |rep|
           rep.raw_paths.each do |snapshot_name, raw_path|
-            log(:low, :skip, raw_path, duration_for(rep))
+            log(:low, :skip, raw_path, nil)
           end
         end
       end
 
     private
-
-      def duration_for(rep)
-        return nil if rep.raw_path.nil?
-
-        start = @start_times[rep.raw_path]
-        stop  = @stop_times[rep.raw_path]
-        return nil if start.nil? || stop.nil?
-
-        stop - start
-      end
 
       def log(level, action, path, duration)
         Nanoc::CLI::Logger.instance.file(level, action, path, duration)

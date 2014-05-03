@@ -58,12 +58,16 @@ module Nanoc::CLI
           exit!(0)
         end
       end
-      begin
-        Signal.trap('USR1') do
-          puts 'Caught USR1; dumping a stack trace'
-          puts caller.map { |i| "  #{i}" }.join("\n")
+
+      # Set stack trace dump handler
+      if !defined?(RUBY_ENGINE) || RUBY_ENGINE != 'jruby'
+        begin
+          Signal.trap('USR1') do
+            puts 'Caught USR1; dumping a stack trace'
+            puts caller.map { |i| "  #{i}" }.join("\n")
+          end
+        rescue ArgumentError
         end
-      rescue ArgumentError
       end
 
       # Run
@@ -217,7 +221,6 @@ module Nanoc::CLI
       'redcloth'       => 'RedCloth',
       'rubypants'      => 'rubypants',
       'sass'           => 'sass',
-      'systemu'        => 'systemu',
       'w3c_validators' => 'w3c_validators'
     }
 
@@ -293,13 +296,15 @@ module Nanoc::CLI
     end
 
     def write_stack_trace(stream, error, params = {})
+      is_verbose = params.fetch(:verbose, false)
+
       write_section_header(stream, 'Stack trace', params)
 
-      count = params[:verbose] ? -1 : 10
+      count = is_verbose ? -1 : 10
       error.backtrace[0...count].each_with_index do |item, index|
         stream.puts "  #{index}. #{item}"
       end
-      if error.backtrace.size > count
+      if !is_verbose && error.backtrace.size > count
         stream.puts "  ... #{error.backtrace.size - count} more lines omitted. See full crash log for details."
       end
     end

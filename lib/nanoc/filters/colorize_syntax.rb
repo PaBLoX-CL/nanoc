@@ -34,6 +34,7 @@ module Nanoc::Filters
     # * `:pygmentsrb` for [pygments.rb](https://github.com/tmm1/pygments.rb),
     #   a Ruby interface for [Pygments](http://pygments.org/)
     # * `:simon_highlight` for [Highlight](http://www.andre-simon.de/doku/highlight/en/highlight.html)
+    # * `:rouge` for [Rouge](https://github.com/jayferd/rouge/)
     #
     # Additional colorizer implementations are welcome!
     #
@@ -83,6 +84,8 @@ module Nanoc::Filters
     #
     # @return [String] The filtered content
     def run(content, params = {})
+      Nanoc::Extra::JRubyNokogiriWarner.check_and_warn
+
       # Take colorizers from parameters
       @colorizers = Hash.new(params[:default_colorizer] || DEFAULT_COLORIZER)
       (params[:colorizers] || {}).each_pair do |language, colorizer|
@@ -101,8 +104,7 @@ module Nanoc::Filters
       end
 
       # Colorize
-      is_fullpage = params.fetch(:is_fullpage) { false }
-      doc = is_fullpage ? klass.parse(content, nil, 'UTF-8') : klass.fragment(content)
+      doc = parse(content, klass, params.fetch(:is_fullpage, false))
       selector = params[:outside_pre] ? 'code' : 'pre > code'
       doc.css(selector).each do |element|
         # Get language
@@ -141,6 +143,35 @@ module Nanoc::Filters
 
       method = "to_#{syntax}".to_sym
       doc.send(method, :encoding => 'UTF-8')
+    end
+
+    # Parses the given content using the given class. This method also handles
+    # an issue with Nokogiri on JRuby causing “cannot modify frozen string”
+    # errors.
+    #
+    # @param [String] content The content to parse
+    #
+    # @param [Class] klass The Nokogiri parser class (either Nokogiri::HTML
+    #   or Nokogiri::XML)
+    #
+    # @param [Boolean] is_fullpage true if the given content is a full page,
+    #   false if it is a fragment
+    #
+    # @api private
+    def parse(content, klass, is_fullpage)
+      begin
+        if is_fullpage
+          klass.parse(content, nil, 'UTF-8')
+        else
+          klass.fragment(content)
+        end
+      rescue => e
+        if e.message =~ /can't modify frozen string/
+          parse(content.dup, klass, is_fullpage)
+        else
+          raise e
+        end
+      end
     end
 
     # Runs the code through [CodeRay](http://coderay.rubychan.de/).
@@ -185,23 +216,20 @@ module Nanoc::Filters
     #
     # @return [String] The colorized output
     def pygmentize(code, language, params = {})
-      require 'systemu'
       check_availability('pygmentize', '-V')
 
       params[:encoding] ||= 'utf-8'
       params[:nowrap]   ||= 'True'
 
-      # Build command
       cmd = [ 'pygmentize', '-l', language, '-f', 'html' ]
       cmd << '-O' << params.map { |k, v| "#{k}=#{v}" }.join(',') unless params.empty?
 
-      # Run command
       stdout = StringIO.new
-      systemu cmd, 'stdin' => code, 'stdout' => stdout
+      stderr = $stderr
+      piper = Nanoc::Extra::Piper.new(:stdout => stdout, :stderr => stderr)
+      piper.run(cmd, code)
 
-      # Get result
-      stdout.rewind
-      stdout.read
+      stdout.string
     end
 
     # Runs the content through [Pygments](http://pygments.org/) via
@@ -246,11 +274,8 @@ module Nanoc::Filters
     #
     # @return [String] The colorized output
     def simon_highlight(code, language, params = {})
-      require 'systemu'
-
       check_availability('highlight', '--version')
 
-      # Build command
       cmd = [ 'highlight', '--syntax', language, '--fragment' ]
       params.each do |key, value|
         if SIMON_HIGHLIGHT_OPT_MAP[key]
@@ -264,13 +289,12 @@ module Nanoc::Filters
         end
       end
 
-      # Run command
       stdout = StringIO.new
-      systemu cmd, 'stdin' => code, 'stdout' => stdout
+      stderr = $stderr
+      piper = Nanoc::Extra::Piper.new(:stdout => stdout, :stderr => stderr)
+      piper.run(cmd, code)
 
-      # Get result
-      stdout.rewind
-      stdout.read
+      stdout.string
     end
 
     # Wraps the element in <div class="CodeRay"><div class="code">
@@ -292,9 +316,26 @@ module Nanoc::Filters
       element.swap div_outer
     end
 
+    # Runs the content through [Rouge](https://github.com/jayferd/rouge/.
+    #
+    # @api private
+    #
+    # @param [String] code The code to colorize
+    #
+    # @param [String] language The language the code is written in
+    #
+    # @return [String] The colorized output
+    def rouge(code, language, params = {})
+      require 'rouge'
+
+      formatter = Rouge::Formatters::HTML.new(:css_class => params[:css_class] || "highlight")
+      lexer = Rouge::Lexer.find_fancy(language, code) || Rouge::Lexers::PlainText
+      formatter.format(lexer.lex(code))
+    end
+
   protected
 
-    KNOWN_COLORIZERS = [ :coderay, :dummy, :pygmentize, :pygmentsrb, :simon_highlight ]
+    KNOWN_COLORIZERS = [ :coderay, :dummy, :pygmentize, :pygmentsrb, :simon_highlight, :rouge ]
 
     # Removes the first blank lines and any whitespace at the end.
     def strip(s)
@@ -323,8 +364,8 @@ module Nanoc::Filters
     end
 
     def check_availability(*cmd)
-      systemu cmd
-      raise "Could not spawn #{cmd.join(' ')}" if $CHILD_STATUS.exitstatus != 0
+      piper = Nanoc::Extra::Piper.new(:stdout => StringIO.new, :stderr => StringIO.new)
+      piper.run(cmd, nil)
     end
 
   end
