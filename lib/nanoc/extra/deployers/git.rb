@@ -44,8 +44,8 @@ module Nanoc::Extra::Deployers
 
       puts "Deploying via git to remote='#{remote}' and branch='#{branch}'"
 
-      # If the remote is not a Git url already, get it from git config
-      unless remote.match(/:\/\//) # assume it is not a URL
+      # If the remote is not a URL already, get it from git config
+      unless remote.match(/:\/\//)
         stdout = StringIO.new
         piper = Nanoc::Extra::Piper.new(:stdout => stdout, :stderr => $stderr)
         piper.run(%W( git config --get remote.#{remote}.url ), nil)
