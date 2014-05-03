@@ -34,6 +34,7 @@ module Nanoc::Extra::Deployers
   #       branch:     gh-pages
   #
   class Git < ::Nanoc::Extra::Deployer
+    identifier :git
 
     # @see Nanoc::Extra::Deployer#run
     # Code adapted from Middleman Deploy (https://github.com/tvaughan/middleman-deploy)
