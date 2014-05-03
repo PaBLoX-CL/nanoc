@@ -46,7 +46,10 @@ module Nanoc::Extra::Deployers
 
       # If the remote is not a Git url already, get it from git config
       unless remote.end_with?('.git')
-        remote = run_shell_cmd(%W( git config --get remote.#{remote}.url )).chop
+        stdout = StringIO.new
+        piper = Nanoc::Extra::Piper.new(:stdout => stdout, :stderr => $stderr)
+        piper.run(%W( git config --get remote.#{remote}.url ), nil)
+        remote = stdout.string.chop
       end
 
       raise "Please add a remote called '#{opts[:remote]}' to your repo." if remote == ''
