@@ -50,33 +50,25 @@ module Nanoc::Extra::Deployers
 
       puts "Deploying via git to remote='#{remote}' and branch='#{branch}'"
 
-      # If the remote is not a URL already, get it from git config
-      unless remote.match(/:\/\//)
-        stdout = StringIO.new
-        piper = Nanoc::Extra::Piper.new(:stdout => stdout, :stderr => $stderr)
-        piper.run(%W( git config --get remote.#{remote}.url ), nil)
-        remote = stdout.string.chop
-      end
-
-      raise "Please add a remote called '#{opts[:remote]}' to your repo." if remote == ''
-
       Dir.chdir(self.source_path) do
-        if File.exists?('.git')
-          # Check if the remote url has changed
-          if remote != run_shell_cmd(%w( git config --get remote.origin.url )).chop
-            run_shell_cmd(%w( git remote rm origin ))
-            run_shell_cmd(%W( git remote add origin #{remote} ))
-          end
-        else
+        if not File.exists?('.git')
+          puts "#{self.source_path} does not appear to be a Git repo. Creating one..."
           run_shell_cmd(%w( git init ))
-          run_shell_cmd(%W( git remote add origin #{remote} ))
         end
 
-        # If the branch exists then switch to it, otherwise create a new one and switch to it
-        if run_shell_cmd(%w( git branch )).split("\n").any? { |b| b =~ /^#{branch}$/i }
+        # If the remote is not a URL already, get it from git config
+        unless remote.match(/:\/\//)
+          remote = get_output_from_cmd(
+            %W( git config --get remote.#{remote}.url ),
+            "Please add a remote called '#{remote}' to the repo inside #{self.source_path}."
+          )
+        end
+
+        # If the branch exists then switch to it, otherwise prompt the user to create one.
+        if get_output_from_cmd(%w( git branch )).split("\n").any? { |b| b =~ /^(\*\s+)?#{branch}$/i }
           run_shell_cmd(%W( git checkout #{branch} ))
         else
-          run_shell_cmd(%W( git checkout -b #{branch} ))
+          raise "Branch '#{branch}' does not exist inside #{self.source_path}. Please create one and try again."
         end
 
         msg = "Automated commit at #{Time.now.utc} by nanoc #{Nanoc::VERSION}"
