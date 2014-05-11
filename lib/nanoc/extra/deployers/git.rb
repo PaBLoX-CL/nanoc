@@ -44,9 +44,9 @@ module Nanoc::Extra::Deployers
         end
 
         # If the branch exists then switch to it, otherwise prompt the user to create one.
-        if get_output_from_cmd(%w( git branch )).split("\n").any? { |b| b =~ /^(\*\s+)?#{branch}$/i }
+        begin
           run_shell_cmd(%W( git checkout #{branch} ))
-        else
+        rescue
           raise "Branch '#{branch}' does not exist inside #{self.source_path}. Please create one and try again."
         end
 
