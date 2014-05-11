@@ -1,5 +1,63 @@
 # nanoc news
 
+## 3.7.0 (???)
+
+New features:
+
+* Allowed excluding links from the internal links check (`@config[:checks][:internal_links][:exclude]`) (#242) [Remko Tronçon]
+* Added Rouge syntax coloring filter (#398) [Guilherme Garnier]
+* Backported `after_setup` from nanoc 4 to make it easier to create CLI plugins (#407) [Rémi Barraquand]
+* Make lib dirs configurable using `lib_dirs` config attribute (#424) [Gregory Pakosz]
+* Added support for setting parent config dir using `parent_config_file` config attribute (#419) [Gregory Pakosz]
+
+Enhancements:
+
+* Added `:with_toc` support to RedCarpet (#222, #232)
+* Added `slim` to the list of text extensions (#316)
+* Made `content/` and `layouts/` dirs configurable (#412) [Gregory Pakosz]
+* Allowed included rules files to have their own preprocess block (#420) [Gregory Pakosz]
+
+## 3.6.10.1 (2014-05-09)
+
+Identical to 3.6.10 but published with corrected release notes.
+
+## 3.6.10 (2014-05-09)
+
+Fixes:
+
+* Fixed occasional "no such file" error on JRuby (#422)
+* Prevented multiple items and layouts from having the same identifier (#434, #435)
+
+Enhancements:
+
+* Set default encoding to UTF-8 (#428)
+* Improved checksummer to reduce number of unnecessary recompiles (#310, #431)
+* Disabled USR1 on JRuby in order to suppress warning (#425, #426)
+* Made pandoc filter argument passing more generic (#210, #433)
+
+## 3.6.9 (2014-04-15)
+
+Fixes:
+
+* Fixed path to default stylesheet (#410, #411)
+* Improved reliability of piping from/to external processes in JRuby (#417)
+* Added workaround for “cannot modify” errors when using Nokogiri on JRuby (#416)
+* Made corrupted cached data auto-repair itself if possible (#409, #418)
+
+## 3.6.8 (2014-03-22)
+
+Fixes:
+
+* Fixed issue with missing compilation durations (#374, #379)
+* Made XSL filter transform item rather than layout (#399, #401) [Simon South]
+* Made XSL filter honor omit-xml-declaration (#403, #404) [Simon South]
+* Removed "see full crash log" line from crash log (#397, #402)
+
+Enhancements:
+
+* Added warning when multiple preprocessors are defined (#389)
+* Improve stylesheet handling in default site (#339, #395)
+
 ## 3.6.7 (2013-12-09)
 
 Fixes:

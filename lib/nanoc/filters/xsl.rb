@@ -25,21 +25,25 @@ module Nanoc::Filters
     #
     #     layout 'xsl-report', :xsl, :awesome => 'definitely'
     #
-    # @param [String] content The XML content to transform
+    # @param [String] content Ignored. As the filter can be run only as a
+    #   layout, the value of the `:content` parameter passed to the class at
+    #   initialization is used as the content to transform.
     #
     # @param [Hash] params The parameters that will be stored in corresponding
     #   `xsl:param` elements.
     #
     # @return [String] The transformed content
     def run(content, params = {})
+      Nanoc::Extra::JRubyNokogiriWarner.check_and_warn
+
       if assigns[:layout].nil?
         raise 'The XSL filter can only be run as a layout'
       end
 
-      xml = ::Nokogiri::XML(content)
+      xml = ::Nokogiri::XML(assigns[:content])
       xsl = ::Nokogiri::XSLT(assigns[:layout].raw_content)
 
-      xsl.transform(xml, ::Nokogiri::XSLT.quote_params(params)).to_s
+      xsl.apply_to(xml, ::Nokogiri::XSLT.quote_params(params))
     end
 
   end
