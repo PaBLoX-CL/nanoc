@@ -39,6 +39,10 @@ module Nanoc::Extra::Deployers
     # @see Nanoc::Extra::Deployer#run
     # Code adapted from Middleman Deploy (https://github.com/tvaughan/middleman-deploy)
     def run
+      unless File.exists?(self.source_path)
+        raise "#{self.source_path} does not exist. Please run 'nanoc compile' first."
+      end
+
       remote = config.fetch(:remote, 'origin')
       branch = config.fetch(:branch, 'gh-pages')
 
