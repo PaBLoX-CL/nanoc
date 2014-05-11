@@ -15,6 +15,25 @@ Enhancements:
 * Added `:with_toc` support to RedCarpet (#222, #232)
 * Added `slim` to the list of text extensions (#316)
 * Made `content/` and `layouts/` dirs configurable (#412) [Gregory Pakosz]
+* Allowed included rules files to have their own preprocess block (#420) [Gregory Pakosz]
+
+## 3.6.10.1 (2014-05-09)
+
+Identical to 3.6.10 but published with corrected release notes.
+
+## 3.6.10 (2014-05-09)
+
+Fixes:
+
+* Fixed occasional "no such file" error on JRuby (#422)
+* Prevented multiple items and layouts from having the same identifier (#434, #435)
+
+Enhancements:
+
+* Set default encoding to UTF-8 (#428)
+* Improved checksummer to reduce number of unnecessary recompiles (#310, #431)
+* Disabled USR1 on JRuby in order to suppress warning (#425, #426)
+* Made pandoc filter argument passing more generic (#210, #433)
 
 ## 3.6.9 (2014-04-15)
 
