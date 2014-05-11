@@ -32,6 +32,7 @@ module Nanoc::Extra::Deployers
   #       kind:       git
   #       remote:     git@github.com:myself/myproject.git
   #       branch:     gh-pages
+  #       forced:     true
   #
   class Git < ::Nanoc::Extra::Deployer
     identifier :git
@@ -45,6 +46,7 @@ module Nanoc::Extra::Deployers
 
       remote = config.fetch(:remote, 'origin')
       branch = config.fetch(:branch, 'master')
+      forced = config.fetch(:forced, false)
 
       puts "Deploying via git to remote='#{remote}' and branch='#{branch}'"
 
@@ -80,7 +82,12 @@ module Nanoc::Extra::Deployers
         msg = "Automated commit at #{Time.now.utc} by nanoc #{Nanoc::VERSION}"
         run_shell_cmd(%w( git add -A ))
         run_shell_cmd(%W( git commit --allow-empty -am #{msg} ))
-        run_shell_cmd(%W( git push -f origin #{branch} ))
+        if forced
+          puts 'Warning: forced update'
+          run_shell_cmd(%W( git push #{forced} #{remote} #{branch} ))
+        else
+          run_shell_cmd(%W( git push #{remote} #{branch} ))
+        end
       end 
     end
 
