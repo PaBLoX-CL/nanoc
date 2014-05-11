@@ -87,5 +87,16 @@ module Nanoc::Extra::Deployers
       piper.run(cmd, nil)
     end
 
+    def get_output_from_cmd(cmd, errmsg = 'An unexpected error has occurred')
+      stdout = StringIO.new
+      piper = Nanoc::Extra::Piper.new(:stdout => stdout, :stderr => $stderr)
+      begin
+        piper.run(cmd, nil)
+      rescue Nanoc::Extra::Piper::Error
+        raise errmsg
+      end
+      stdout.string.chop
+    end
+
   end
 end
