@@ -44,7 +44,7 @@ module Nanoc::Extra::Deployers
       end
 
       remote = config.fetch(:remote, 'origin')
-      branch = config.fetch(:branch, 'gh-pages')
+      branch = config.fetch(:branch, 'master')
 
       puts "Deploying via git to remote='#{remote}' and branch='#{branch}'"
 
