@@ -58,7 +58,7 @@ module Nanoc::Extra::Deployers
         run_shell_cmd(%W( git commit --allow-empty -am #{msg} ))
         if forced
           puts 'Warning: forced update'
-          run_shell_cmd(%W( git push #{forced} #{remote} #{branch} ))
+          run_shell_cmd(%W( git push -f #{remote} #{branch} ))
         else
           run_shell_cmd(%W( git push #{remote} #{branch} ))
         end
