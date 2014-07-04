@@ -36,6 +36,7 @@ module Nanoc::Extra::Deployers
 
         # If the remote is not a URL already, verify that it is defined
         unless remote.match(/:\/\//)
+        unless remote.match(/:\/\/|@.+:/)
           begin
             run_shell_cmd(%W( git config --get remote.#{remote}.url ))
           rescue Nanoc::Extra::Piper::Error
