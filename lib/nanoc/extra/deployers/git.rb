@@ -37,9 +37,8 @@ module Nanoc::Extra::Deployers
         # If the remote is not a URL already, get it from git config
         unless remote.match(/:\/\//)
           stdout = StringIO.new
-          piper = Nanoc::Extra::Piper.new(:stdout => stdout, :stderr => $stderr)
           begin
-            piper.run(%W( git config --get remote.#{remote}.url ), nil)
+            run_shell_cmd(%W( git config --get remote.#{remote}.url ), :stdout => stdout)
           rescue Nanoc::Extra::Piper::Error
             raise "Please add a remote called '#{remote}' to the repo inside #{self.source_path}."
           end
@@ -67,8 +66,9 @@ module Nanoc::Extra::Deployers
 
   private
 
-    def run_shell_cmd(cmd)
-      piper = Nanoc::Extra::Piper.new(:stdout => $stdout, :stderr => $stderr)
+    def run_shell_cmd(cmd, opts = {})
+      stdout = opts.fetch(:stdout, $stdout)
+      piper = Nanoc::Extra::Piper.new(:stdout => stdout, :stderr => $stderr)
       piper.run(cmd, nil)
     end
 
