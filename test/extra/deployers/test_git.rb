@@ -9,11 +9,6 @@ class Nanoc::Extra::Deployers::GitTest < Nanoc::TestCase
       'output/',
       {})
 
-    # Mock run_shell_cmd
-    def git.run_shell_cmd(args, opts = {})
-      @shell_cms_args << args
-    end
-
     # Try running
     error = assert_raises(RuntimeError) do
       git.run
