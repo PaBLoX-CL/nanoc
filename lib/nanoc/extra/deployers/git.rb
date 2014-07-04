@@ -34,8 +34,10 @@ module Nanoc::Extra::Deployers
           run_shell_cmd(%w( git init ))
         end
 
-        # If the remote is not a URL already, verify that it is defined
-        unless remote.match(/:\/\//)
+        # If the remote is not a URL already, verify that it is defined.
+        # Examples of URLs:
+        #    https://github.com/nanoc/nanoc.git
+        #    git@github.com:lifepillar/nanoc.git
         unless remote.match(/:\/\/|@.+:/)
           begin
             run_shell_cmd(%W( git config --get remote.#{remote}.url ))
