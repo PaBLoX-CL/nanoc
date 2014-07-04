@@ -45,7 +45,7 @@ git commit --allow-empty -am Automated commit at .+ by nanoc \\d+\\.\\d+\\.\\d+
 git push origin master
 EOS
 
-    assert_match Regexp.new(commands.chomp), git.instance_eval { @shell_cmd_args.join("\n") }
+    assert_match Regexp.new(/^#{commands.chomp}$/), git.instance_eval { @shell_cmd_args.join("\n") }
   end
 
   def test_run_with_custom_options
@@ -75,7 +75,7 @@ git commit --allow-empty -am Automated commit at .+ by nanoc \\d+\\.\\d+\\.\\d+
 git push -f github gh-pages
 EOS
 
-    assert_match Regexp.new(commands.chomp), git.instance_eval { @shell_cmd_args.join("\n") }
+    assert_match Regexp.new(/^#{commands.chomp}$/), git.instance_eval { @shell_cmd_args.join("\n") }
   end
 
   def test_run_without_git_init
@@ -104,7 +104,7 @@ git commit --allow-empty -am Automated commit at .+ by nanoc \\d+\\.\\d+\\.\\d+
 git push origin master
 EOS
 
-    assert_match Regexp.new(commands.chomp), git.instance_eval { @shell_cmd_args.join("\n") }
+    assert_match Regexp.new(/^#{commands.chomp}$/), git.instance_eval { @shell_cmd_args.join("\n") }
   end
 
   def test_run_with_ssh_url
@@ -133,7 +133,7 @@ git commit --allow-empty -am Automated commit at .+ by nanoc \\d+\\.\\d+\\.\\d+
 git push git@github.com:myself/myproject.git master
 EOS
 
-    assert_match Regexp.new(commands.chomp), git.instance_eval { @shell_cmd_args.join("\n") }
+    assert_match Regexp.new(/^#{commands.chomp}$/), git.instance_eval { @shell_cmd_args.join("\n") }
   end
 
   def test_run_with_http_url
@@ -162,7 +162,7 @@ git commit --allow-empty -am Automated commit at .+ by nanoc \\d+\\.\\d+\\.\\d+
 git push https://github.com/nanoc/nanoc.git master
 EOS
 
-    assert_match Regexp.new(commands.chomp), git.instance_eval { @shell_cmd_args.join("\n") }
+    assert_match Regexp.new(/^#{commands.chomp}$/), git.instance_eval { @shell_cmd_args.join("\n") }
   end
 
 end
