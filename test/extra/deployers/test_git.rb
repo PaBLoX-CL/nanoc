@@ -78,4 +78,91 @@ EOS
     assert_match Regexp.new(commands.chomp), git.instance_eval { @shell_cmd_args.join("\n") }
   end
 
+  def test_run_without_git_init
+    # Create deployer
+    git = Nanoc::Extra::Deployers::Git.new(
+      'output/',
+      {})
+
+    # Mock run_shell_cmd
+    def git.run_shell_cmd(args, opts = {})
+      @shell_cmd_args = [] unless defined? @shell_cmd_args
+      @shell_cmd_args << args.join(' ')
+    end
+
+    # Create site
+    FileUtils.mkdir_p('output/.git')
+    
+    # Try running
+    git.run
+
+    commands = <<-EOS
+git config --get remote.origin.url
+git checkout master
+git add -A
+git commit --allow-empty -am Automated commit at .+ by nanoc \\d+\\.\\d+\\.\\d+
+git push origin master
+EOS
+
+    assert_match Regexp.new(commands.chomp), git.instance_eval { @shell_cmd_args.join("\n") }
+  end
+
+  def test_run_with_ssh_url
+    # Create deployer
+    git = Nanoc::Extra::Deployers::Git.new(
+      'output/',
+      { :remote => 'git@github.com:myself/myproject.git' })
+
+    # Mock run_shell_cmd
+    def git.run_shell_cmd(args, opts = {})
+      @shell_cmd_args = [] unless defined? @shell_cmd_args
+      @shell_cmd_args << args.join(' ')
+    end
+
+    # Create site
+    FileUtils.mkdir_p('output')
+    
+    # Try running
+    git.run
+
+    commands = <<-EOS
+git init
+git checkout master
+git add -A
+git commit --allow-empty -am Automated commit at .+ by nanoc \\d+\\.\\d+\\.\\d+
+git push git@github.com:myself/myproject.git master
+EOS
+
+    assert_match Regexp.new(commands.chomp), git.instance_eval { @shell_cmd_args.join("\n") }
+  end
+
+  def test_run_with_http_url
+    # Create deployer
+    git = Nanoc::Extra::Deployers::Git.new(
+      'output/',
+      { :remote => 'https://github.com/nanoc/nanoc.git' })
+
+    # Mock run_shell_cmd
+    def git.run_shell_cmd(args, opts = {})
+      @shell_cmd_args = [] unless defined? @shell_cmd_args
+      @shell_cmd_args << args.join(' ')
+    end
+
+    # Create site
+    FileUtils.mkdir_p('output')
+    
+    # Try running
+    git.run
+
+    commands = <<-EOS
+git init
+git checkout master
+git add -A
+git commit --allow-empty -am Automated commit at .+ by nanoc \\d+\\.\\d+\\.\\d+
+git push https://github.com/nanoc/nanoc.git master
+EOS
+
+    assert_match Regexp.new(commands.chomp), git.instance_eval { @shell_cmd_args.join("\n") }
+  end
+
 end
