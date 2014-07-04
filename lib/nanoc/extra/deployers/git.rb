@@ -29,7 +29,7 @@ module Nanoc::Extra::Deployers
       puts "Deploying via git to remote='#{remote}' and branch='#{branch}'"
 
       Dir.chdir(self.source_path) do
-        if not File.exists?('.git')
+        unless File.exists?('.git')
           puts "#{self.source_path} does not appear to be a Git repo. Creating one..."
           run_shell_cmd(%w( git init ))
         end
