@@ -19,7 +19,7 @@ module Nanoc::Extra::Deployers
     # @see Nanoc::Extra::Deployer#run
     def run
       unless File.exists?(self.source_path)
-        raise "#{self.source_path} does not exist. Please run 'nanoc compile' first."
+        raise "#{self.source_path} does not exist. Please build your site first."
       end
 
       remote = config.fetch(:remote, 'origin')
