@@ -30,6 +30,11 @@ class Nanoc::Extra::Deployers::GitTest < Nanoc::TestCase
       @shell_cmd_args << args.join(' ')
     end
 
+    # Mock clean_repo?
+    def git.clean_repo?
+      false
+    end
+
     # Create site
     FileUtils.mkdir_p('output')
     
@@ -41,7 +46,7 @@ git init
 git config --get remote.origin.url
 git checkout master
 git add -A
-git commit --allow-empty -am Automated commit at .+ by nanoc \\d+\\.\\d+\\.\\d+
+git commit -am Automated commit at .+ by nanoc \\d+\\.\\d+\\.\\d+
 git push origin master
 EOS
 
@@ -60,6 +65,11 @@ EOS
       @shell_cmd_args << args.join(' ')
     end
 
+    # Mock clean_repo?
+    def git.clean_repo?
+      false
+    end
+
     # Create site
     FileUtils.mkdir_p('output')
     
@@ -71,7 +81,7 @@ git init
 git config --get remote.github.url
 git checkout gh-pages
 git add -A
-git commit --allow-empty -am Automated commit at .+ by nanoc \\d+\\.\\d+\\.\\d+
+git commit -am Automated commit at .+ by nanoc \\d+\\.\\d+\\.\\d+
 git push -f github gh-pages
 EOS
 
@@ -90,6 +100,11 @@ EOS
       @shell_cmd_args << args.join(' ')
     end
 
+    # Mock clean_repo?
+    def git.clean_repo?
+      false
+    end
+
     # Create site
     FileUtils.mkdir_p('output/.git')
     
@@ -100,7 +115,7 @@ EOS
 git config --get remote.origin.url
 git checkout master
 git add -A
-git commit --allow-empty -am Automated commit at .+ by nanoc \\d+\\.\\d+\\.\\d+
+git commit -am Automated commit at .+ by nanoc \\d+\\.\\d+\\.\\d+
 git push origin master
 EOS
 
@@ -119,6 +134,11 @@ EOS
       @shell_cmd_args << args.join(' ')
     end
 
+    # Mock clean_repo?
+    def git.clean_repo?
+      false
+    end
+
     # Create site
     FileUtils.mkdir_p('output')
     
@@ -129,7 +149,7 @@ EOS
 git init
 git checkout master
 git add -A
-git commit --allow-empty -am Automated commit at .+ by nanoc \\d+\\.\\d+\\.\\d+
+git commit -am Automated commit at .+ by nanoc \\d+\\.\\d+\\.\\d+
 git push git@github.com:myself/myproject.git master
 EOS
 
@@ -148,6 +168,11 @@ EOS
       @shell_cmd_args << args.join(' ')
     end
 
+    # Mock clean_repo?
+    def git.clean_repo?
+      false
+    end
+
     # Create site
     FileUtils.mkdir_p('output')
     
@@ -158,7 +183,7 @@ EOS
 git init
 git checkout master
 git add -A
-git commit --allow-empty -am Automated commit at .+ by nanoc \\d+\\.\\d+\\.\\d+
+git commit -am Automated commit at .+ by nanoc \\d+\\.\\d+\\.\\d+
 git push https://github.com/nanoc/nanoc.git master
 EOS
 
