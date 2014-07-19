@@ -55,7 +55,7 @@ module Nanoc::Extra::Deployers
 
         msg = "Automated commit at #{Time.now.utc} by nanoc #{Nanoc::VERSION}"
         run_shell_cmd(%w( git add -A ))
-        run_shell_cmd(%W( git commit --allow-empty -am #{msg} ))
+        run_shell_cmd(%W( git commit -am #{msg} ))
         if forced
           run_shell_cmd(%W( git push -f #{remote} #{branch} ))
         else
