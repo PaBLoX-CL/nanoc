@@ -53,9 +53,11 @@ module Nanoc::Extra::Deployers
           raise "Branch '#{branch}' does not exist inside #{self.source_path}. Please create one and try again."
         end
 
-        msg = "Automated commit at #{Time.now.utc} by nanoc #{Nanoc::VERSION}"
-        run_shell_cmd(%w( git add -A ))
-        run_shell_cmd(%W( git commit -am #{msg} ))
+        unless clean_repo?
+          msg = "Automated commit at #{Time.now.utc} by nanoc #{Nanoc::VERSION}"
+          run_shell_cmd(%w( git add -A ))
+          run_shell_cmd(%W( git commit -am #{msg} ))
+        end
         if forced
           run_shell_cmd(%W( git push -f #{remote} #{branch} ))
         else
@@ -69,6 +71,13 @@ module Nanoc::Extra::Deployers
     def run_shell_cmd(cmd)
       piper = Nanoc::Extra::Piper.new(:stdout => $stdout, :stderr => $stderr)
       piper.run(cmd, nil)
+    end
+
+    def clean_repo?
+      stdout = StringIO.new
+      piper = Nanoc::Extra::Piper.new(:stdout => stdout, :stderr => $stderr)
+      piper.run(%w( git status --porcelain ), nil)
+      stdout.empty?
     end
 
   end
