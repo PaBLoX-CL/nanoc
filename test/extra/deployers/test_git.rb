@@ -53,6 +53,39 @@ EOS
     assert_match Regexp.new(/^#{commands.chomp}$/), git.instance_eval { @shell_cmd_args.join("\n") }
   end
 
+  def test_run_with_clean_repository
+    # Create deployer
+    git = Nanoc::Extra::Deployers::Git.new(
+      'output/',
+      {})
+
+    # Mock run_shell_cmd
+    def git.run_shell_cmd(args, opts = {})
+      @shell_cmd_args = [] unless defined? @shell_cmd_args
+      @shell_cmd_args << args.join(' ')
+    end
+
+    # Mock clean_repo?
+    def git.clean_repo?
+      true
+    end
+
+    # Create site
+    FileUtils.mkdir_p('output')
+
+    # Try running
+    git.run
+
+    commands = <<-EOS
+git init
+git config --get remote.origin.url
+git checkout master
+git push origin master
+EOS
+
+    assert_match Regexp.new(/^#{commands.chomp}$/), git.instance_eval { @shell_cmd_args.join("\n") }
+  end
+
   def test_run_with_custom_options
     # Create deployer
     git = Nanoc::Extra::Deployers::Git.new(
