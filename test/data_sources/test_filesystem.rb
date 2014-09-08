@@ -277,6 +277,57 @@ class Nanoc::DataSources::FilesystemTest < Nanoc::TestCase
     end
   end
 
+  def test_parse_embedded_meta_only_1
+    # Create a file
+    File.open('test.html', 'w') do |io|
+      io.write "-----\r\n"
+      io.write "foo: bar\n"
+      io.write "-----\n"
+    end
+
+    # Create data source
+    data_source = Nanoc::DataSources::FilesystemCombined.new(nil, nil, nil, nil)
+
+    # Parse it
+    result = data_source.instance_eval { parse('test.html', nil, 'foobar') }
+    assert_equal({ 'foo' => 'bar' }, result[0])
+    assert_equal("", result[1])
+  end
+
+  def test_parse_embedded_meta_only_2
+    # Create a file
+    File.open('test.html', 'w') do |io|
+      io.write "-----\n"
+      io.write "foo: bar\r\n"
+      io.write "-----\r"
+    end
+
+    # Create data source
+    data_source = Nanoc::DataSources::FilesystemCombined.new(nil, nil, nil, nil)
+
+    # Parse it
+    result = data_source.instance_eval { parse('test.html', nil, 'foobar') }
+    assert_equal({ 'foo' => 'bar' }, result[0])
+    assert_equal("", result[1])
+  end
+
+  def test_parse_embedded_meta_only_3
+    # Create a file
+    File.open('test.html', 'w') do |io|
+      io.write "-----\r\n"
+      io.write "foo: bar\n"
+      io.write "-----"
+    end
+
+    # Create data source
+    data_source = Nanoc::DataSources::FilesystemCombined.new(nil, nil, nil, nil)
+
+    # Parse it
+    result = data_source.instance_eval { parse('test.html', nil, 'foobar') }
+    assert_equal({ 'foo' => 'bar' }, result[0])
+    assert_equal("", result[1])
+  end
+
   def test_parse_embedded_invalid_2
     # Create a file
     File.open('test.html', 'w') do |io|
@@ -313,10 +364,10 @@ class Nanoc::DataSources::FilesystemTest < Nanoc::TestCase
   def test_parse_embedded_full_meta
     # Create a file
     File.open('test.html', 'w') do |io|
-      io.write "-----\n"
+      io.write "-----\r\n"
       io.write "foo: bar\n"
       io.write "-----\n"
-      io.write "blah blah\n"
+      io.write "  \t\n  blah blah\n"
     end
 
     # Create data source
@@ -325,7 +376,7 @@ class Nanoc::DataSources::FilesystemTest < Nanoc::TestCase
     # Parse it
     result = data_source.instance_eval { parse('test.html', nil, 'foobar') }
     assert_equal({ 'foo' => 'bar' }, result[0])
-    assert_equal('blah blah', result[1])
+    assert_equal("  \t\n  blah blah\n", result[1])
   end
 
   def test_parse_embedded_with_extra_spaces
@@ -334,7 +385,7 @@ class Nanoc::DataSources::FilesystemTest < Nanoc::TestCase
       io.write "-----             \n"
       io.write "foo: bar\n"
       io.write "-----\t\t\t\t\t\n"
-      io.write "blah blah\n"
+      io.write "  blah blah\n"
     end
 
     # Create data source
@@ -343,7 +394,7 @@ class Nanoc::DataSources::FilesystemTest < Nanoc::TestCase
     # Parse it
     result = data_source.instance_eval { parse('test.html', nil, 'foobar') }
     assert_equal({ 'foo' => 'bar' }, result[0])
-    assert_equal('blah blah', result[1])
+    assert_equal("  blah blah\n", result[1])
   end
 
   def test_parse_embedded_empty_meta
@@ -351,7 +402,8 @@ class Nanoc::DataSources::FilesystemTest < Nanoc::TestCase
     File.open('test.html', 'w') do |io|
       io.write "-----\n"
       io.write "-----\n"
-      io.write "blah blah\n"
+      io.write "\nblah blah\n"
+      io.write "-----"
     end
 
     # Create data source
@@ -360,7 +412,7 @@ class Nanoc::DataSources::FilesystemTest < Nanoc::TestCase
     # Parse it
     result = data_source.instance_eval { parse('test.html', nil, 'foobar') }
     assert_equal({}, result[0])
-    assert_equal('blah blah', result[1])
+    assert_equal("\nblah blah\n-----", result[1])
   end
 
   def test_parse_utf8_bom
@@ -376,7 +428,7 @@ class Nanoc::DataSources::FilesystemTest < Nanoc::TestCase
 
     result = data_source.instance_eval { parse('test.html', nil, 'foobar') }
     assert_equal({ 'utf8bomawareness' => 'high' }, result[0])
-    assert_equal('content goes here', result[1])
+    assert_equal("content goes here\n", result[1])
   end
 
   def test_parse_embedded_no_meta
